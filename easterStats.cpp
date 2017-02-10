@@ -12,6 +12,7 @@
 #include <functional>
 #include <algorithm>
 
+#include "getEasterDay.h"
 #include "gnuplot-cpp/gnuplot_i.hpp"
 
 namespace est
@@ -66,21 +67,6 @@ namespace est
 	}
 
 
-///calculates the number of days after februrary which is easter sunday 
-int getEasterDay( int YEAR ) 
-{
-	int  k = YEAR / 100;    // K(X) = X div 100
-	int s = 2 - (3*k + 3) / 4;  // S(K) = 2 - (3K + 3) div 4
-	int m = 15 + (3*k + 3) / 4 - (8*k + 13) / 25;  // M(K) = 15 + (3K + 3) div 4 - (K + 13) div 25
-	int a = YEAR % 19;  // A(X) = X mod 19
-	int d = ( 19*a + m ) % 30;  // D(A,M) = (19A + M) mod 30
-	int r = ( d + a / 11 ) / 29;  //  R(D,A) = (D + A div 11) div 29
-	int og = 21 + d - r;  // OG(D,R) = 21 + D - R
-	int sz = 7 - ( YEAR + YEAR / 4 + s ) % 7;  // SZ(X,S) = 7 - (X + X div 4 + S) mod 7
-	int oe = 7 - ( og - sz ) % 7;  // OE(OG,SZ) = 7 - (OG - SZ) mod 7
-
-	return og + oe;
-}
 
 
 }
@@ -93,7 +79,7 @@ std::vector<int> getListOfYears(int easter_day,int start_year = min_y, int end_y
 
 	for(int year= start_year ; year < end_year; ++year)
 	{
-		if( easter_day == est::getEasterDay(year))
+		if( easter_day == getEasterDay(year))
 		{
 			listOfYears.push_back(year);
 		}
@@ -102,18 +88,7 @@ std::vector<int> getListOfYears(int easter_day,int start_year = min_y, int end_y
 	return (listOfYears);
 }
 
-struct result
-{
-public:
-	result()
-	{
-		index_year=0;
-		occurence =0;
-	}
-	int index_year;
-	int occurence;
-	int year;
-};
+ 
 
 //void maxReach(int &abs_min, int &abs_max, std::map<int,std::vector<int> > &eDayDiffDistribution, size_t e, std::map<int,result> &minMap, std::map<int,std::vector<int> > eDayDistribution)
 //{
@@ -151,7 +126,7 @@ int main(int argc, char* argv[])
  
 
 
-	int eday =  est::getEasterDay(2017);
+	int eday =  getEasterDay(2017);
 
 	Gnuplot::set_GNUPlotPath("X:\\gnuplot\\bin");
     Gnuplot g("");
@@ -198,7 +173,7 @@ int main(int argc, char* argv[])
 
 	
 	
-	/// plot 16th April as example
+	///----------- plot 16th April as example
 	std::vector<int> e47(eDayDiffDistribution[47].size()-1,0);
 	std::copy(eDayDiffDistribution[47].begin()+1,eDayDiffDistribution[47].end(),e47.begin());
 
@@ -211,13 +186,11 @@ int main(int argc, char* argv[])
 	g.set_xlabel("list index");
 	g.set_style("boxes fs solid 0.25 lc 3  lw 2.5").set_grid("lw 2 xtics   ytics ").plot_x(e47,"");
 
+	///-------------------------
 
 
-
-	//int abs_min =10000;
-	//int abs_max = 0;
-	//
-	/// do statitics over repeat intervals
+	
+	///------------------ do statistics over easter day repeat intervals
 
 	std::vector<double> emin;
 	std::vector<double> emax;
@@ -241,6 +214,8 @@ int main(int argc, char* argv[])
 			auto max = std::max_element(ebegin,eDayDiffDistribution[e].end());
 			emax.push_back(*max);
 			auto sum = std::accumulate(ebegin,eDayDiffDistribution[e].end(),0.0);
+
+			auto sum2=  std::accumulate(ebegin,eDayDiffDistribution[e].end(),0.0,[](int a, int b) { return (a+b);});
 		
 			double average = sum/ numberOfData;
 			emean.push_back(average);
@@ -248,7 +223,7 @@ int main(int argc, char* argv[])
 		
 
 
-			double  sum_diff_squared = std::accumulate(ebegin,eDayDiffDistribution[e].end(),0.0,[&average](int a, int b)
+			double  sum_diff_squared = std::accumulate(ebegin,eDayDiffDistribution[e].end(),0.0,[average](int a, int b)
 															  {
 																 return (a + pow((b-average),2.0) );
 															  }
@@ -270,32 +245,36 @@ int main(int argc, char* argv[])
 
 			emedian.push_back(med);
 		
-			//maxReach(abs_min, abs_max, eDayDiffDistribution, e, minMap, eDayDistribution);
-
- 
-	
+ 	
 		
 		
+	 }
 	}
-	}
 
+	/// output 
 
-	Gnuplot g1("");
-    g1.reset_all();
-	
-	/*g1.set_terminal_std("pngcairo size 800,600");
-	g1.showonscreen();
-	g1.cmd("set output 'statistics.png'");*/
+	std::ofstream file;
+	file.open("statistics.dat");
+	for(size_t i=0; i<eDays.size();++i)
+	{
+		file << eDays[i] << " " << emin[i] << " " << emean[i] << " " << emedian[i] << " " << emax[i] << "\n";
+	} 
+	file.close();
 
-	g1.reset_plot();
-	g1.set_multiplot("layout 2,1");
-	g1.set_title("");
-	g1.set_ylabel("");
-	g1.set_xlabel("");
-	g1.plot_xy(eDays,emin,"min").plot_xy(eDays,emax,"min");
-	
-	
-				 
+	g.set_terminal_std("pngcairo size 800,600");
+	g.showonscreen();
+	g.cmd("set output 'statistics.png'");
+	g.reset_plot();
+	g.set_title("statistics of repeat interval for  easter day  in the range from  1582 to 2582");
+	g.set_ylabel("time / years");
+	g.set_xlabel("easter day");
+	//linespoints
+	g.set_grid("lw 1.6 xtics   ytics ");
+	g.cmd("plot 'statistics.dat' using 1:2 with linespoints lw 2 title 'minimum repeat interval' , \
+		        'statistics.dat' using 1:3 with linespoints lw 2 title 'mean repeat interval', \
+				'statistics.dat' using 1:4 with linespoints lw 2 title 'median repeat interval',	\
+				'statistics.dat' using 1:5 with linespoints lw 2 title 'maximum repeat interval");
+	///-----			 
  
 
 	return 0;
