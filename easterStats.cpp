@@ -90,28 +90,7 @@ std::vector<int> getListOfYears(int easter_day,int start_year = min_y, int end_y
 
  
 
-//void maxReach(int &abs_min, int &abs_max, std::map<int,std::vector<int> > &eDayDiffDistribution, size_t e, std::map<int,result> &minMap, std::map<int,std::vector<int> > eDayDistribution)
-//{
-//	abs_min = std::min(abs_min,*min);
-//	abs_max=  std::max(*max,abs_max);
-//
-//
-//	int max_ = 0;
-//	for(int i = 1; i < eDayDiffDistribution[e].size(); ++i)
-//	{
-//		int it = 	est::accumulate_upTo(ebegin,eDayDiffDistribution[e].end(),80.0,0.0);
-//		ebegin++;
-//
-//		if(it > max_)
-//		{       
-//			max_ = it;
-//			minMap[e].index_year = i-1;
-//			minMap[e].occurence =it-1;
-//			minMap[e].year = eDayDistribution[e][i-1];
-//		}
-//
-//	}
-//}
+ 
 
 int main(int argc, char* argv[])
 {
@@ -122,7 +101,7 @@ int main(int argc, char* argv[])
 
 	std::map<int,std::vector<int> > eDayDistribution;
 	std::map<int,std::vector<int> > eDayDiffDistribution;
-	std::map<int,result> minMap;
+	 
  
 
 
@@ -234,7 +213,10 @@ int main(int argc, char* argv[])
 			double std_dev =  sqrt( sum_diff_squared/(numberOfData -1));
 		
 			estd_dev.push_back(std_dev);
-			auto diffCubicOp = [&average](int a,int b){return( a + pow((b-average),3.0) );};
+			auto diffCubicOp = [&average](int a,int b)
+								{
+										return( a + pow((b-average),3.0) );
+			                    };
 
 			double sum_diff_cubic = std::accumulate(ebegin,eDayDiffDistribution[e].end(),0.0,diffCubicOp);
 		
