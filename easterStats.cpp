@@ -14,6 +14,7 @@
 
 #include "getEasterDay.h"
 #include "gnuplot-cpp/gnuplot_i.hpp"
+#include "../cobs/cobs.h"
 
 namespace est
 {
@@ -94,6 +95,14 @@ std::vector<int> getListOfYears(int easter_day,int start_year = min_y, int end_y
 
 int main(int argc, char* argv[])
 {
+
+	 
+
+ 
+
+
+
+
 	const int min_easter_day =  22;
 	const int max_easter_day  = min_easter_day+35; // 57 -31= 26
  
